@@ -32,13 +32,14 @@ import argparse
 import typing
 from recap import URI, CfgNode as CN
 
+import time
+
 from chesscog.corner_detection import find_corners, resize_image
 from chesscog.occupancy_classifier import create_dataset as create_occupancy_dataset
 from chesscog.piece_classifier import create_dataset as create_piece_dataset
 from chesscog.core import device, DEVICE
 from chesscog.core.dataset import build_transforms, Datasets
 from chesscog.core.dataset import name_to_piece
-
 
 class ChessRecognizer:
     """A class implementing the entire chess inference pipeline.
@@ -88,6 +89,9 @@ class ChessRecognizer:
         square_imgs = list(square_imgs)
         square_imgs = torch.stack(square_imgs)
         square_imgs = device(square_imgs)
+
+        #print('*******************')
+        #print(square_imgs[1])
 
         # RR MH Starting Point for our occupancy model
         occupancy = self._occupancy_model(square_imgs)
@@ -184,46 +188,62 @@ class TimedChessRecognizer(ChessRecognizer):
             return board, corners, times
 
 
-def main(classifiers_folder: Path = URI("models://"), setup: callable = lambda: None):
-    """Main method for running inference from the command line.
+def main():
+        print('*******************')
+        print('Marinus is here')
 
-    Args:
-        classifiers_folder (Path, optional): the path to the classifiers (supplying a different path is especially useful because the transfer learning classifiers are located at ``models://transfer_learning``). Defaults to ``models://``.
-        setup (callable, optional): An optional setup function to be called after the CLI argument parser has been setup. Defaults to lambda:None.
-    """
 
-    parser = argparse.ArgumentParser(
-        description="Run the chess recognition pipeline on an input image")
-    parser.add_argument("file", help="path to the input image", type=str)
-    parser.add_argument(
-        "--white", help="indicate that the image is from the white player's perspective (default)", action="store_true", dest="color")
-    parser.add_argument(
-        "--black", help="indicate that the image is from the black player's perspective", action="store_false", dest="color")
-    parser.set_defaults(color=True)
-    args = parser.parse_args()
+# def main(classifiers_folder: Path = URI("models://"), setup: callable = lambda: None):
+#     """Main method for running inference from the command line.
 
-    setup()
+#     Args:
+#         classifiers_folder (Path, optional): the path to the classifiers (supplying a different path is especially useful because the transfer learning classifiers are located at ``models://transfer_learning``). Defaults to ``models://``.
+#         setup (callable, optional): An optional setup function to be called after the CLI argument parser has been setup. Defaults to lambda:None.
+#     """
 
-    img = cv2.imread(str(URI(args.file)))
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+#     print('*******************')
+#     print('Marinus is here')
 
-    recognizer = ChessRecognizer(classifiers_folder)
-    board, *_ = recognizer.predict(img, args.color)
+#     parser = argparse.ArgumentParser(
+#         description="Run the chess recognition pipeline on an input image")
+#     parser.add_argument("file", help="path to the input image", type=str)
+#     parser.add_argument(
+#         "--white", help="indicate that the image is from the white player's perspective (default)", action="store_true", dest="color")
+#     parser.add_argument(
+#         "--black", help="indicate that the image is from the black player's perspective", action="store_false", dest="color")
+#     parser.set_defaults(color=True)
+#     args = parser.parse_args()
 
-    print(board)
-    print()
-    print(
-        f"You can view this position at https://lichess.org/editor/{board.board_fen()}")
+#     setup()
 
-    if board.status() != Status.VALID:
-        print()
-        print("WARNING: The predicted chess position is not legal according to the rules of chess.")
-        print("         You might want to try again with another picture.")
+#     img = cv2.imread(str(URI(args.file)))
+
+#     print('*******************')
+#     cv2.imshow('image', img)
+
+#     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+#     recognizer = ChessRecognizer(classifiers_folder)
+#     board, *_ = recognizer.predict(img, args.color)
+
+#     print(board)
+#     print()
+#     print(
+#         f"You can view this position at https://lichess.org/editor/{board.board_fen()}")
+
+#     if board.status() != Status.VALID:
+#         print()
+#         print("WARNING: The predicted chess position is not legal according to the rules of chess.")
+#         print("         You might want to try again with another picture.")
 
 
 if __name__ == "__main__":
+
+    print('*******************')
+    print('MH is here')
+
     from chesscog.occupancy_classifier.download_model import ensure_model as ensure_occupancy_classifier
     from chesscog.piece_classifier.download_model import ensure_model as ensure_piece_classifier
 
-    main(setup=lambda: [ensure_model(show_size=True)
-                        for ensure_model in (ensure_occupancy_classifier, ensure_piece_classifier)])
+    main()
+    # main(setup=lambda: [ensure_model(show_size=True)
+    #                     for ensure_model in (ensure_occupancy_classifier, ensure_piece_classifier)])
