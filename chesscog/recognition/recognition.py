@@ -88,6 +88,8 @@ class ChessRecognizer:
         square_imgs = list(square_imgs)
         square_imgs = torch.stack(square_imgs)
         square_imgs = device(square_imgs)
+
+        # RR MH Starting Point for our occupancy model
         occupancy = self._occupancy_model(square_imgs)
         occupancy = occupancy.argmax(
             axis=-1) == self._occupancy_cfg.DATASET.CLASSES.index("occupied")
