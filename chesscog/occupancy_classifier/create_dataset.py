@@ -75,6 +75,14 @@ def warp_chessboard_image(img: np.ndarray, corners: np.ndarray) -> np.ndarray:
                            [SQUARE_SIZE, BOARD_SIZE + SQUARE_SIZE]  # bottom left
                            ], dtype=np.float)
     transformation_matrix, mask = cv2.findHomography(src_points, dst_points)
+
+    # Debug help: img
+    # Input img
+    # cv2.imshow('image', img)
+    # Result img
+    # result = cv2.warpPerspective(img, transformation_matrix, (IMG_SIZE, IMG_SIZE))
+    # cv2.imshow('image', result)
+
     return cv2.warpPerspective(img, transformation_matrix, (IMG_SIZE, IMG_SIZE))
 
 

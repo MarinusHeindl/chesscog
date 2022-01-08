@@ -32,7 +32,8 @@ import argparse
 import typing
 from recap import URI, CfgNode as CN
 
-import time
+# RR MH
+from debugHelper import printDebug
 
 from chesscog.corner_detection import find_corners, resize_image
 from chesscog.occupancy_classifier import create_dataset as create_occupancy_dataset
@@ -82,16 +83,27 @@ class ChessRecognizer:
     def _classify_occupancy(self, img: np.ndarray, turn: chess.Color, corners: np.ndarray) -> np.ndarray:
         warped = create_occupancy_dataset.warp_chessboard_image(
             img, corners)
+
+        # Debug
+        # warped -> img birdview
+        # Arrays 500 e.g. [103  79  52] -> are rgb of img
+        # printDebug('warped', warped)   
+        cv2.imshow('image', warped)
+
         square_imgs = map(functools.partial(
             create_occupancy_dataset.crop_square, warped, turn=turn), self._squares)
         square_imgs = map(Image.fromarray, square_imgs)
         square_imgs = map(self._occupancy_transforms, square_imgs)
         square_imgs = list(square_imgs)
         square_imgs = torch.stack(square_imgs)
+        printDebug('square_imgs', square_imgs)
+
         square_imgs = device(square_imgs)
 
-        #print('*******************')
-        #print(square_imgs[1])
+        # Debug
+        # warped are ??
+        # Arrays 500 e.g. [103  79  52]
+        printDebug('square_imgs', square_imgs)  
 
         # RR MH Starting Point for our occupancy model
         occupancy = self._occupancy_model(square_imgs)
@@ -131,7 +143,21 @@ class ChessRecognizer:
         with torch.no_grad():
             img, img_scale = resize_image(self._corner_detection_cfg, img)
             corners = find_corners(self._corner_detection_cfg, img)
+
+            # Debug help: show img
+            # cv2.imshow('image', img)
+            
+            # Debug
+            # corners are 4 x Points (x/y)
+            # print(corners)
+            # print(corners)
+
             occupancy = self._classify_occupancy(img, turn, corners)
+
+            # Debug
+            # occupancy array of 64 x [False, True, ...]
+            # print(occupancy)
+
             pieces = self._classify_pieces(img, turn, corners, occupancy)
 
             board = chess.Board()
@@ -196,9 +222,6 @@ def main(classifiers_folder: Path = URI("models://"), setup: callable = lambda: 
         setup (callable, optional): An optional setup function to be called after the CLI argument parser has been setup. Defaults to lambda:None.
     """
 
-    print('*******************')
-    print('Marinus is here')
-
     parser = argparse.ArgumentParser(
         description="Run the chess recognition pipeline on an input image")
     # parser.add_argument("file", help="path to the input image", type=str)
@@ -217,8 +240,8 @@ def main(classifiers_folder: Path = URI("models://"), setup: callable = lambda: 
     # img = cv2.imread(str(URI(args.file)))
     img = cv2.imread(str(URI(input_img_path)))
 
-    print('*******************')
-    cv2.imshow('image', img)
+    # Debug help: show img
+    # cv2.imshow('image', img)
 
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     recognizer = ChessRecognizer(classifiers_folder)
